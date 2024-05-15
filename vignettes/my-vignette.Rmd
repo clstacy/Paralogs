@@ -1,0 +1,598 @@
+---
+title: "my-vignette"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{my-vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(Paralogs)
+```
+
+```{r}
+library(dplyr)
+# library(readr)
+# library(stringr)
+library(clusterProfiler)
+library(org.Sc.sgd.db)
+```
+
+Tutorial for Paralogs
+
+```{r}
+# url2 <- "https://github.com/clstacy/GenomicDataAnalysis_Fa23/raw/main/data/yeast_res_edgeR.Rds"
+# res3 <- read_rds(url2)
+
+res_all <- readr::read_rds("https://github.com/clstacy/GenomicDataAnalysis_Fa23/raw/main/data/yeast_res_all_edgeR.Rds")
+
+
+DE_genes <- #res3 %>% 
+  res_all %>%
+  data.frame() %>%
+  mutate(p.adj = p.adjust(PValue, method = "bonferroni")) %>%
+  filter(p.adj < 0.001 & logFC.EtOHvsMOCK.WT>0.1
+         ) %>%
+  pull(ORF)
+
+ex_kegg_results <- enrichKEGG(gene = DE_genes, 
+                              pvalueCutoff = 1,
+                              maxGSSize= Inf,
+                           organism = 'sce' #options: https://www.genome.jp/kegg/catalog/org_list.html
+                            )
+
+
+# remove species name from subcategory.
+ex_kegg_results@result$Description <- ex_kegg_results@result$Description %>% 
+  print() %>% 
+  stringr::str_split_i(stringr::fixed(" -"), 1) %>% 
+  print()
+head(ex_kegg_results)
+
+# 
+# # hog 1
+# DE_genes <- #res3 %>% 
+#   # qlf_all %>%
+#   res_all %>%
+#   data.frame() %>%
+#   mutate(p.adj = p.adjust(PValue, method = "bonferroni")) %>%
+#   # filter(p.adj < 0.001 & logFC.EtOHvsMOCK.WT>0.1
+#   #        ) %>%
+#   # pull(genes)
+#   pull(ORF)
+# 
+# ex_kegg_results <- enrichKEGG(gene = DE_genes, #entrez_ids$ENTREZID, 
+#                               pvalueCutoff = 1,
+#                               maxGSSize= Inf,
+#                            organism = 'sce' #options: https://www.genome.jp/kegg/catalog/org_list.html
+#                             )
+# 
+# # remove species name from subcategory.
+# ex_kegg_results@result$Description <- ex_kegg_results@result$Description %>% print() %>% str_split_i(fixed(" -"), 1) %>% print()
+# head(ex_kegg_results)
+```
+
+```{r, fig.width=6, fig.height=6}
+plotz4 <- Paralogs::plotParalogs(ex_kegg_results,
+                                        res_all,
+                                        organism_code = "sce", 
+                                        annotation_package = org.Sc.sgd.db, 
+                                        fc_column = "logFC.EtOHvsMOCK.MSN24dd",
+                                        pathway_code = "sce04138",
+                                        keytype = "ORF",
+                                        juke=18,
+                                        title = "logFC.EtOHvsMOCK.msn24dd"
+                                        )
+
+plotz4 #+ overlay_raw_map("map03010", high_res = TRUE)
+
+ggplot2::ggsave("kegg_plot.png", plotz4, width = 7, height = 7, 
+                dpi = 600, bg="white")
+```
+
+```{r}
+sce00020_viz <- Paralogs::full_kegg_visualization_workflow(ex_kegg_results,
+                                        # res3,
+                                        res_all,
+                                        organism_code = "sce", 
+                                        annotation_package = org.Sc.sgd.db,
+                                        fc_column1 = "logFC.EtOHvsMOCK.MSN24dd", 
+                                        fc_column2 = "logFC.EtOHvsMOCK.WT",
+                                        pathway_code = 'sce00020',
+                                        # pathway_code = 'sce03010',
+                                        # pathway_code = "sce04111",
+                                        # pathway_code = "sce04138",
+                                        keytype = "ORF",
+                                        juke = 20,
+                                        titles = c("logFC.EtOHvsMOCK.MSN24dd", 
+                                                   "logFC.EtOHvsMOCK.WT")
+                                       
+                                         )
+
+sce00020_viz #+ overlay_raw_map("map03010", high_res = TRUE)
+
+ggplot2::ggsave("~/Desktop/sce00020_viz_kegg_plot.png", sce00020_viz, width = 4.4, height = 4.4, 
+                dpi = 600, bg="white")
+```
+
+```{r, fig.width=6, fig.height=6, res=600}
+tps_plot <- Paralogs::full_kegg_visualization_workflow(ex_kegg_results,
+                                        # res3,
+                                        res_all,
+                                        organism_code = "sce", 
+                                        annotation_package = org.Sc.sgd.db, 
+                                        fc_column1 = "logFC.EtOHvsMOCK.MSN24dd", 
+                                        fc_column2 = "logFC.EtOHvsWT.MSN24ddvsWT",
+                                        # pathway_code = 'sce00020',
+                                        # pathway_code = 'sce03010',
+                                        # pathway_code = "sce04111",
+                                        pathway_code = "sce00500",
+                                        keytype = "ORF",
+                                        juke=20,
+                                        titles = c("logFC.EtOHvsMOCK.MSN24dd", 
+                                                   "logFC.EtOHvsWT.MSN24ddvsWT")
+                                        )
+
+tps_plot #+ overlay_raw_map("map03010", high_res = TRUE)
+
+ggplot2::ggsave("~/Desktop/tps_plot.png", tps_plot, width = 6, height = 6, 
+                dpi = 600, bg="white")
+
+
+# glycolysis:
+glycolysis_plot <- Paralogs::full_kegg_visualization_workflow(ex_kegg_results,
+                                        # res3,
+                                        res_all,
+                                        organism_code = "sce", 
+                                        annotation_package = org.Sc.sgd.db, 
+                                        fc_column1 = "logFC.EtOHvsMOCK.MSN24dd", 
+                                        fc_column2 = "logFC.EtOHvsWT.MSN24ddvsWT",
+                                        # pathway_code = 'sce00020',
+                                        # pathway_code = 'sce03010',
+                                        # pathway_code = "sce04111",
+                                        pathway_code = "sce00010",
+                                        keytype = "ORF",
+                                        juke=15,
+                                        titles = c("logFC.EtOHvsMOCK.MSN24dd", 
+                                                   "logFC.EtOHvsWT.MSN24ddvsWT")
+                                        )
+
+glycolysis_plot #+ overlay_raw_map("map03010", high_res = TRUE)
+
+ggplot2::ggsave("~/Desktop/glycolysis_plot.png", glycolysis_plot, width = 4, height = 6, 
+                dpi = 600, bg="white")
+```
+
+
+```{r}
+qlf_all <-glmQLFTest(fit, contrast=my.contrasts)
+
+qlf_all$genes <- qlf_all$genes %>% dplyr::rename("ORF" = "genes")
+# de_results_hog <- data.frame(topTags(qlf_all)) 
+# MAPK:
+# mapk_plot <- Paralogs::full_kegg_visualization_workflow(ex_kegg_results,
+#                                         qlf_all,
+#                                         # res_all,
+#                                         organism_code = "sce", 
+#                                         annotation_package = org.Sc.sgd.db, 
+#                                         fc_column1 = "logFC.YPS606H2O2", 
+#                                         fc_column2 = "logFC.M22H2O2",
+#                                         pathway_code = "sce04011",
+#                                         keytype = "ORF",
+#                                         juke=20,
+#                                         titles = c("logFC.EtOHvsMOCK.MSN24dd", 
+#                                                    "idk")
+#                                                    # "logFC.EtOHvsWT.MSN24ddvsWT")
+#                                         )
+# mapk_plot #+ overlay_raw_map("map03010", high_res = TRUE)
+
+# ggplot2::ggsave("~/Desktop/mapk_m22_h2o2_hog1_plot.png", mapk_plot, width = 5.2, height = 5.2, 
+                # dpi = 600, bg="white")
+
+
+## DBY
+aging_dbyh2o2_plot <- Paralogs::full_kegg_visualization_workflow(ex_kegg_results,
+                                        qlf_all,
+                                        # res_all,
+                                        organism_code = "sce", 
+                                        annotation_package = org.Sc.sgd.db, 
+                                        fc_column1 = "logFC.YPS606H2O2", 
+                                        fc_column2 = "logFC.M22H2O2",
+                                        pathway_code = "sce04213",
+                                        keytype = "ORF",
+                                        juke=20,
+                                        titles = c("logFC.EtOHvsMOCK.MSN24dd", 
+                                                   "idk")
+                                                   # "logFC.EtOHvsWT.MSN24ddvsWT")
+                                        )
+ggplot2::ggsave("~/Desktop/aging_dbyh2o2_plot.png", aging_dbyh2o2_plot, #width = 5.2, height = 5.2, 
+                dpi = 2400, bg="white")
+
+aging_dbynacl_plot <- Paralogs::full_kegg_visualization_workflow(ex_kegg_results,
+                                        qlf_all,
+                                        # res_all,
+                                        organism_code = "sce", 
+                                        annotation_package = org.Sc.sgd.db, 
+                                        fc_column1 = "logFC.YPS606NaCl", 
+                                        fc_column2 = "logFC.DBYNaCl",
+                                        pathway_code = "sce04213",
+                                        keytype = "ORF",
+                                        juke=20,
+                                        titles = c("logFC.EtOHvsMOCK.MSN24dd", 
+                                                   "idk")
+                                                   # "logFC.EtOHvsWT.MSN24ddvsWT")
+                                        )
+ggplot2::ggsave("~/Desktop/aging_dbynacl_plot.png", aging_dbynacl_plot, #width = 5.2, height = 5.2,
+                dpi = 2400, bg="white")
+
+
+aging_dbyetoh_plot <- Paralogs::full_kegg_visualization_workflow(ex_kegg_results,
+                                        qlf_all,
+                                        # res_all,
+                                        organism_code = "sce", 
+                                        annotation_package = org.Sc.sgd.db, 
+                                        fc_column1 = "logFC.YPS606EtOH", 
+                                        fc_column2 = "logFC.DBYEtOH",
+                                        pathway_code = "sce04213",
+                                        keytype = "ORF",
+                                        juke=20,
+                                        titles = c("logFC.EtOHvsMOCK.MSN24dd", 
+                                                   "idk")
+                                                   # "logFC.EtOHvsWT.MSN24ddvsWT")
+                                        )
+ggplot2::ggsave("~/Desktop/aging_dbyetoh_plot.png", aging_dbyetoh_plot, #width = 5.2, height = 5.2,
+                dpi = 2400, bg="white")
+
+## M22
+aging_m22h2o2_plot <- Paralogs::full_kegg_visualization_workflow(ex_kegg_results,
+                                        qlf_all,
+                                        # res_all,
+                                        organism_code = "sce", 
+                                        annotation_package = org.Sc.sgd.db, 
+                                        fc_column1 = "logFC.YPS606H2O2", 
+                                        fc_column2 = "logFC.M22H2O2",
+                                        pathway_code = "sce04213",
+                                        keytype = "ORF",
+                                        juke=20,
+                                        titles = c("logFC.EtOHvsMOCK.MSN24dd", 
+                                                   "idk")
+                                                   # "logFC.EtOHvsWT.MSN24ddvsWT")
+                                        )
+ggplot2::ggsave("~/Desktop/aging_m22h2o2_plot.png", aging_m22h2o2_plot, #width = 5.2, height = 5.2, 
+                dpi = 600, bg="white")
+
+aging_m22nacl_plot <- Paralogs::full_kegg_visualization_workflow(ex_kegg_results,
+                                        qlf_all,
+                                        # res_all,
+                                        organism_code = "sce", 
+                                        annotation_package = org.Sc.sgd.db, 
+                                        fc_column1 = "logFC.YPS606NaCl", 
+                                        fc_column2 = "logFC.M22NaCl",
+                                        pathway_code = "sce04213",
+                                        keytype = "ORF",
+                                        juke=20,
+                                        titles = c("logFC.EtOHvsMOCK.MSN24dd", 
+                                                   "idk")
+                                                   # "logFC.EtOHvsWT.MSN24ddvsWT")
+                                        )
+ggplot2::ggsave("~/Desktop/aging_m22nacl_plot.png", aging_m22nacl_plot, #width = 5.2, height = 5.2,
+                dpi = 600, bg="white")
+
+
+aging_m22etoh_plot <- Paralogs::full_kegg_visualization_workflow(ex_kegg_results,
+                                        qlf_all,
+                                        # res_all,
+                                        organism_code = "sce", 
+                                        annotation_package = org.Sc.sgd.db, 
+                                        fc_column1 = "logFC.YPS606EtOH", 
+                                        fc_column2 = "logFC.M22EtOH",
+                                        pathway_code = "sce04213",
+                                        keytype = "ORF",
+                                        juke=20,
+                                        titles = c("logFC.EtOHvsMOCK.MSN24dd", 
+                                                   "idk")
+                                                   # "logFC.EtOHvsWT.MSN24ddvsWT")
+                                        )
+ggplot2::ggsave("~/Desktop/aging_m22etoh_plot.png", aging_m22etoh_plot, #width = 5.2, height = 5.2,
+                dpi = 600, bg="white")
+
+## YPS606
+
+aging_yps606h2o2_plot <- Paralogs::full_kegg_visualization_workflow(ex_kegg_results,
+                                        qlf_all,
+                                        # res_all,
+                                        organism_code = "sce", 
+                                        annotation_package = org.Sc.sgd.db, 
+                                        fc_column1 = "logFC.YPS606H2O2", 
+                                        fc_column2 = "logFC.DBYH2O2",
+                                        pathway_code = "sce04213",
+                                        keytype = "ORF",
+                                        juke=20,
+                                        titles = c("logFC.EtOHvsMOCK.MSN24dd", 
+                                                   "idk")
+                                                   # "logFC.EtOHvsWT.MSN24ddvsWT")
+                                        )
+
+ggplot2::ggsave("~/Desktop/aging_yps606h2o2_plot.png", aging_yps606h2o2_plot, #width = 5.2, height = 5.2,
+                dpi = 600, bg="white")
+
+aging_yps606nacl_plot <- Paralogs::full_kegg_visualization_workflow(ex_kegg_results,
+                                        qlf_all,
+                                        # res_all,
+                                        organism_code = "sce", 
+                                        annotation_package = org.Sc.sgd.db, 
+                                        fc_column1 = "logFC.YPS606NaCl", 
+                                        fc_column2 = "logFC.DBYNaCl",
+                                        pathway_code = "sce04213",
+                                        keytype = "ORF",
+                                        juke=20,
+                                        titles = c("logFC.EtOHvsMOCK.MSN24dd", 
+                                                   "idk")
+                                                   # "logFC.EtOHvsWT.MSN24ddvsWT")
+                                        )
+
+ggplot2::ggsave("~/Desktop/aging_yps606nacl_plot.png", aging_yps606nacl_plot, #width = 5.2, height = 5.2,
+                dpi = 600, bg="white")
+
+aging_yps606etoh_plot <- Paralogs::full_kegg_visualization_workflow(ex_kegg_results,
+                                        qlf_all,
+                                        # res_all,
+                                        organism_code = "sce", 
+                                        annotation_package = org.Sc.sgd.db, 
+                                        fc_column1 = "logFC.YPS606EtOH", 
+                                        fc_column2 = "logFC.DBYEtOH",
+                                        pathway_code = "sce04213",
+                                        keytype = "ORF",
+                                        juke=20,
+                                        titles = c("logFC.EtOHvsMOCK.MSN24dd", 
+                                                   "idk")
+                                                   # "logFC.EtOHvsWT.MSN24ddvsWT")
+                                        )
+
+ggplot2::ggsave("~/Desktop/aging_yps606etoh_plot.png", aging_yps606etoh_plot, #width = 5.2, height = 5.2,
+                dpi = 600, bg="white")
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+        
+```
+
+```{r}
+# proteasome error b/c of the graphic on the viz.
+proteasome_plot <- Paralogs::full_kegg_visualization_workflow(ex_kegg_results,
+                                        # res3,
+                                        res_all,
+                                        organism_code = "sce", 
+                                        annotation_package = org.Sc.sgd.db, 
+                                        fc_column1 = "logFC.EtOHvsMOCK.MSN24dd", 
+                                        # fc_column2 = "logFC.EtOHvsWT.MSN24ddvsWT",
+                                        fc_column2 = "logFC.EtOHvsMOCK.WT",
+                                        # pathway_code = 'sce00020',
+                                        # pathway_code = 'sce03010',
+                                        # pathway_code = "sce04111",
+                                        pathway_code = "sce03050",
+                                        keytype = "ORF",
+                                        juke=20,
+                                        titles = c("logFC.EtOHvsMOCK.MSN24dd", 
+                                                   "logFC.EtOHvsMOCK.WT")
+                                                   # "logFC.EtOHvsWT.MSN24ddvsWT")
+                                        )
+
+proteasome_plot #+ overlay_raw_map("map03010", high_res = TRUE)
+
+ggplot2::ggsave("~/Desktop/proteasome_plot.png", ribo_plot, width = 5.2, height = 5.2, 
+                dpi = 600, bg="white")
+
+
+
+
+test_plot <- Paralogs::full_kegg_visualization_workflow(ex_kegg_results,
+                                        # res3,
+                                        res_all,
+                                        organism_code = "sce", 
+                                        annotation_package = org.Sc.sgd.db, 
+                                        fc_column1 = "logFC.EtOHvsWT.MSN24ddvsWT", 
+                                        fc_column2 = "logFC.EtOHvsMOCK.WT",
+                                        pathway_code = 'sce04213',
+                                       
+                                        # pathway_code = "sce00020",
+                                        
+                                        
+                                        keytype = "ORF",
+                                        juke=18,
+                                        titles = c("logFC.EtOHvsWT.MSN24ddvsWT", 
+                                                   "logFC.EtOHvsMOCK.WT")
+                                        )
+
+test_plot #+ overlay_raw_map("map03010", high_res = TRUE)
+
+# test_plot[[1]]$data <- test_plot[[1]]$data %>% mutate(y.tmp = case_when(
+#   gene_name %in% c("HSP104", "HSP78") ~ y.tmp - 40,
+#   TRUE ~ y.tmp
+# ))
+
+ggplot2::ggsave("~/Desktop/tests_plot.png", test_plot, width = 7, height = 7, 
+                dpi = 600, bg="white")
+```
+
+
+
+## Compare with pathview output
+```{r}
+gene_data_logFC <- res_all$table$logFC.EtOHvsMOCK.WT
+
+fold_change_genelist <- setNames(object = gene_data_logFC, nm=
+                                 rownames(data.frame(res_all$table)))
+
+
+pathview(gene.data = fold_change_genelist,
+         pathway.id = "sce04213",
+         species = "sce",
+         gene.idtype = "orf",
+         is.signal = F,
+         split.group=TRUE,
+         kegg.native=TRUE,
+         match.data=TRUE,
+         limit=list(gene=5,cpd=1),
+         low = list(gene = "#4575b4", cpd = "green"),
+         mid = list(gene = "#ffffbf", cpd = "black"),
+         high = list(gene = "#d73027", cpd = "orange"))
+
+
+pathview(gene.data = fold_change_genelist,
+         pathway.id = "sce00020",
+         species = "sce",
+         gene.idtype = "orf",
+         is.signal = F,
+         split.group=TRUE,
+         kegg.native=TRUE,
+         match.data=TRUE,
+         limit=list(gene=5,cpd=1),
+         low = list(gene = "#4575b4", cpd = "green"),
+         mid = list(gene = "#ffffbf", cpd = "black"),
+         high = list(gene = "#d73027", cpd = "orange"))
+```
+
+
+
+```{r}
+g1 <- pathway("sce00020") |> mutate(keggresults = append_cp(ex_kegg_results, how = "all"), converted_name="sce")
+
+ggraph(g1, layout="manual",x=x,y=y) + geom_node_rect(aes(fill=keggresults, xmax=x, filter=type=="gene")) + overlay_raw_map()
+
+testing <- ggkegg(ex_kegg_results, convert_first=TRUE, pathway_number = 3, convert_org = c("sce"), return_igraph=FALSE, delete_zero_degree = TRUE) 
+
+ggraph(testing)
+```
+
+
+
+```{r}
+graph_data %>%
+  group_by(reaction) %>%
+  mutate(logFC_vs_mean = logFC2-mean(logFC2,na.rm=T), n=factor(n(),levels = c(as.character(1:8))),
+         range_logFC = max(logFC2)-min(logFC2),
+         crosses_zero = case_when(
+           min(logFC2) < 0 & max(logFC2) > 0 ~ 1,
+           TRUE ~ 0
+         ),
+         gene_in_group = row_number()) %>%
+  # select(logFC2, gene_in_group, n, crosses_zero, name) %>%
+  # tidyr::pivot_wider(names_from = "geneID", values_from = )
+  # tidyr::pivot_wider(names_from = gene_in_group, values_from = logFC2) %>%
+  # ungroup() %>%
+  # corrr::correlate() %>% corrr::as_cordf()
+            # .groups = "drop") #%>%)
+  # ungroup() %>% #summarise(test=sum(crosses_zero)/n())
+  # summarise(crosses_zero = sum(crosses_zero)/n(), .by=n) %>%
+  # binom.test(x = .$crosses_zero, n = .$n, p = 0.2352941, alternative = "greater") #%>%
+  
+  #pull(n) %>% unique()
+  ggplot(aes(x=n, y = logFC2)) +
+  # geom_point()
+  geom_boxplot() +
+  # geom_point()
+  ggbeeswarm::geom_quasirandom() +
+  ggpubr::stat_compare_means(comparisons = list(c(1,2),c(1,3), c(1,4), c(1,5)), paired=FALSE,ref.group = `1`, method = "t.test", label="p.format") #+
+
+  
+testin <- graph_data %>%
+  group_by(reaction) %>%
+  mutate(logFC_vs_mean = logFC2-mean(logFC2,na.rm=T), n=factor(n(),levels = c(as.character(1:8))),
+         range_logFC = max(logFC2)-min(logFC2),
+         crosses_zero = case_when(
+           min(logFC2) < 0 & max(logFC2) > 0 ~ 1,
+           TRUE ~ 0
+         ),
+         gene_in_group = row_number()) %>%
+  # group_by(GENENAME) %>%
+  ungroup() %>%
+  group_by(gene_name) %>%
+  # filter(as.integer(n)>1) %>%
+  slice_head(n=1) %>%
+  filter(n!=8) %>%
+  group_by(n) %>%
+  mutate(genes_in_num = n())
+
+nrow(filter(testin, logFC2 > 0))
+nrow(testin)
+
+testin %>%
+  mutate(random1 = sample(logFC2, replace=TRUE),
+         random2 = sample(logFC2,replace=TRUE),
+         fake_perm_cross = case_when(
+           random1*random2 < 0 ~ 1,
+           TRUE ~ 0
+         ),
+         crosses_zero = case_when(
+           n == 1 ~ fake_perm_cross,
+           TRUE ~ crosses_zero
+         )) %>% #View()
+  summarise(crosses_zero = sum(crosses_zero), genes_in_num = genes_in_num[1]) %>%
+  ggplot(aes(y=(crosses_zero)/genes_in_num, x = as.numeric(n))) +
+  geom_point() +
+  # ggbeeswarm::geom_quasirandom() +
+  # geom_smooth() +
+  geom_col()
+  # add r2
+  # ggpubr::stat_cor(method = "spearman", label.x = 0, label.y = 1)
+
+
+# permutation test
+# graph_data %>%
+#   group_by(reaction) %>%
+#   mutate(logFC_vs_mean = logFC2-mean(logFC2,na.rm=T), n=factor(n(),levels = c(as.character(1:8))),
+#          range_logFC = max(logFC2)-min(logFC2),
+#          crosses_zero = case_when(
+#            min(logFC2) < 0 & max(logFC2) > 0 ~ 1,
+#            TRUE ~ 0
+#          )
+#   ungroup() %>%
+#   summarise(crosses_zero = sum(crosses_zero)/n(), .by=n) %>%
+#   pull(n) %>% unique() -> n_values
+```
+
+```{r}
+graph_data %>%
+  group_by(reaction) %>%
+  mutate(logFC_vs_mean = logFC2-mean(logFC2,na.rm=T), 
+         CoV = sd(logFC2,na.rm=T)/mean(logFC2,na.rm=T),
+         cov_raw = sqrt(exp(log(2)*var(logFC2,na.rm=T))-1),
+         n=factor(n(),levels = c(as.character(1:8))),
+         range_logFC = max(logFC2)-min(logFC2),
+         crosses_zero = case_when(
+           min(logFC2) < 0 & max(logFC2) > 0 ~ 1,
+           TRUE ~ 0
+         ),
+         gene_in_group = row_number()) %>%
+  ungroup() %>%
+  group_by(CoV) %>% 
+  # filter(as.integer(n)>1) %>%
+  slice_head(n=1) %>% #View()
+  filter(n!=1) %>%
+  filter(between(cov_raw, -10,10)) %>%
+  ggplot(aes(x=cov_raw)) + #geom_histogram(bins=60) + 
+    geom_density() + theme_classic() +
+    geom_vline(xintercept = 1, linetype="dashed") +
+    ylab("Probability Density") +
+    xlab("Coefficient of Variation")
+
+ggsave("~/Desktop/CoV_density.png", width=3, height=2, dpi=600)
+```
+
+```{r}
+```
