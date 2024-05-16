@@ -59,7 +59,7 @@ plotParalogs(gene_data, pathway_data)
 
 The above example generates the resulting plot:
 
-```{r exampleImage, echo = FALSE}
+```{r exampleImage, echo = FALSE, message=FALSE, warning=FALSE}
 library(Paralogs)
 library(org.Sc.sgd.db)
 library(dplyr)
