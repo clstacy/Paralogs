@@ -20,81 +20,31 @@ library(Paralogs)
 
 ```{r}
 library(dplyr)
-# library(readr)
-# library(stringr)
-library(clusterProfiler)
+# library(clusterProfiler)
 library(org.Sc.sgd.db)
 ```
 
 Tutorial for Paralogs
 
 ```{r}
-# url2 <- "https://github.com/clstacy/GenomicDataAnalysis_Fa23/raw/main/data/yeast_res_edgeR.Rds"
-# res3 <- read_rds(url2)
-
-res_all <- readr::read_rds("https://github.com/clstacy/GenomicDataAnalysis_Fa23/raw/main/data/yeast_res_all_edgeR.Rds")
-
-
-DE_genes <- #res3 %>% 
-  res_all %>%
-  data.frame() %>%
-  mutate(p.adj = p.adjust(PValue, method = "bonferroni")) %>%
-  filter(p.adj < 0.001 & logFC.EtOHvsMOCK.WT>0.1
-         ) %>%
-  pull(ORF)
-
-ex_kegg_results <- enrichKEGG(gene = DE_genes, 
-                              pvalueCutoff = 1,
-                              maxGSSize= Inf,
-                           organism = 'sce' #options: https://www.genome.jp/kegg/catalog/org_list.html
-                            )
-
-
-# remove species name from subcategory.
-ex_kegg_results@result$Description <- ex_kegg_results@result$Description %>% 
-  print() %>% 
-  stringr::str_split_i(stringr::fixed(" -"), 1) %>% 
-  print()
-head(ex_kegg_results)
-
-# 
-# # hog 1
-# DE_genes <- #res3 %>% 
-#   # qlf_all %>%
-#   res_all %>%
-#   data.frame() %>%
-#   mutate(p.adj = p.adjust(PValue, method = "bonferroni")) %>%
-#   # filter(p.adj < 0.001 & logFC.EtOHvsMOCK.WT>0.1
-#   #        ) %>%
-#   # pull(genes)
-#   pull(ORF)
-# 
-# ex_kegg_results <- enrichKEGG(gene = DE_genes, #entrez_ids$ENTREZID, 
-#                               pvalueCutoff = 1,
-#                               maxGSSize= Inf,
-#                            organism = 'sce' #options: https://www.genome.jp/kegg/catalog/org_list.html
-#                             )
-# 
-# # remove species name from subcategory.
-# ex_kegg_results@result$Description <- ex_kegg_results@result$Description %>% print() %>% str_split_i(fixed(" -"), 1) %>% print()
-# head(ex_kegg_results)
+data("lrt_yeast")
+data("example_enrich_results")
 ```
 
+
 ```{r, fig.width=6, fig.height=6}
-plotz4 <- Paralogs::plotParalogs(ex_kegg_results,
-                                        res_all,
-                                        organism_code = "sce", 
-                                        annotation_package = org.Sc.sgd.db, 
-                                        fc_column = "logFC.EtOHvsMOCK.MSN24dd",
-                                        pathway_code = "sce04138",
-                                        keytype = "ORF",
-                                        juke=18,
-                                        title = "logFC.EtOHvsMOCK.msn24dd"
-                                        )
+example_plot <- Paralogs::plotParalogs(
+  example_enrich_results,
+  lrt_yeast,
+  pathway_code = "sce04138",
+  # keytype = "ORF",
+  juke = 18,
+  title = "Example Title for this Plot"
+)
 
-plotz4 #+ overlay_raw_map("map03010", high_res = TRUE)
+example_plot
 
-# ggplot2::ggsave("kegg_plot.png", plotz4, width = 7, height = 7, 
+# ggplot2::ggsave("example_plot.png", example_plot, width = 7, height = 7, 
 #                 dpi = 600, bg="white")
 ```
 

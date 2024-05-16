@@ -1,0 +1,91 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# Paralogs
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+"Paralogs" is an innovative R package designed to enhance the analysis of gene expression data in KEGG pathways by visualizing the differential expression of all genes within KEGG nodes. Unlike traditional methods that collapse the expression levels of these genes, "Paralogs" maintains gene-level specificity, revealing nuanced regulatory and functional distinctions.
+
+## Features
+- **Gene-Level Visualization**: Visualize differential expression data for each gene within KEGG pathways.
+- **Integration with Bioinformatics Tools**: Seamlessly works with popular R bioinformatics packages like DESeq2, edgeR, and limma.
+- **Customizable Outputs**: Offers flexible customization options for your visualizations to meet diverse research needs.
+
+## Installation
+
+You can install the development version of Paralogs from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("clstacy/Paralogs")
+```
+
+## Example
+
+Here’s how to get started with the "Paralogs" package:
+
+```{r example, eval=FALSE}
+library(Paralogs)
+
+# load example data
+gene_data <- data()
+pathway_data <- data()
+
+# Generate plots for paralogs
+plotParalogs(gene_data, pathway_data)
+```
+
+<!-- What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so: -->
+
+<!-- ```{r cars} -->
+<!-- summary(cars) -->
+<!-- ``` -->
+
+<!-- You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this. -->
+
+The above example generates the resulting plot:
+
+```{r exampleImage, echo = FALSE}
+library(Paralogs)
+library(org.Sc.sgd.db)
+library(dplyr)
+# load example data
+data("lrt_yeast")
+data("example_enrich_results")
+
+# Generate plots for paralogs
+plotParalogs(DE_results = lrt_yeast, enrich_results = example_enrich_results,pathway_code = "sce04111")
+
+```
+
+## Contributing
+
+Contributions to "Paralogs" are welcome! Please reach out for details on the process for submitting pull requests to us.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE.md file for details.
+
+## Citation
+
+If you use "Paralogs" in your research, please cite:
+
+Stacy, C and Lewis, J. (2024). Paralogs: An R Package for Visualizing Differential Expression of Paralogs in KEGG Gene Pathways. GitHub repository, https://github.com/clstacy/Paralogs
+
+## Contact
+
+For questions and feedback, please reach out to me at clstacy.stat[at]gmail.com.

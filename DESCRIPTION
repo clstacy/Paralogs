@@ -5,7 +5,7 @@ Version: 0.1.0
 Authors@R: 
     person("Carson", "Stacy", email = "carsonstacy2@gmail.com", role = c("aut", "cre"))
 Description: This package provides functions to visualize the differential expression of paralogs in KEGG gene pathways. The package includes functions to download KEGG gene pathways, extract paralogs from the pathways, and visualize the differential expression of the paralogs. The package also includes functions to visualize the expression of paralogs in the context of the KEGG gene pathways.
-License: use_mit_license()
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 suggests:
@@ -26,4 +26,7 @@ Imports:
     magrittr,
     stringr,
     tibble,
-    tidyr
+    tidyr,
+    RColorBrewer
+Depends: 
+    R (>= 2.10)

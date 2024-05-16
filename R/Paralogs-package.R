@@ -13,6 +13,7 @@
 #' @importFrom ggkegg overlay_raw_map
 #' @importFrom KEGGREST keggList
 #' @importFrom magrittr %>%
+#' @importFrom RColorBrewer brewer.pal
 #' @importFrom stringr str_remove_all
 #' @importFrom stringr str_split
 #' @importFrom tibble rownames_to_column

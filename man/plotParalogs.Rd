@@ -7,16 +7,20 @@
 plotParalogs(
   enrich_results,
   DE_results,
-  organism_code,
-  annotation_package,
-  keytype,
+  organism_code = "sce",
+  annotation_package = org.Sc.sgd.db,
+  keytype = "ORF",
   pathway_code,
-  fc_column,
+  fc_column = "logFC",
   juke = 20,
   title = NULL
 )
 }
 \arguments{
+\item{enrich_results}{The enrichKEGG results (from clusterProfiler).}
+
+\item{DE_results}{The DE results (e.g. from edgeR).}
+
 \item{organism_code}{The organism code for KEGG pathways (e.g., 'sce').}
 
 \item{annotation_package}{The Bioconductor package for annotations relevant to the organism.}
@@ -30,8 +34,6 @@ plotParalogs(
 \item{juke}{A number for amount of space to separate names. Default is 20.}
 
 \item{title}{A title for the plot.}
-
-\item{results}{The enrichKEGG results (from clusterProfiler).}
 }
 \value{
 A ggplot object displaying the pathway graphs.

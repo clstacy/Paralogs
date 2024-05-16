@@ -15,9 +15,13 @@ process_ggkegg(
 \arguments{
 \item{KEGG_data}{A ggkegg object containing KEGG pathway data.}
 
+\item{topTags_results}{A dataframe containing gene results.}
+
 \item{KEGG_reactions_df}{A dataframe containing KEGG reaction descriptions.}
 
 \item{annotation_db}{An AnnotationDbi object for gene annotations.}
+
+\item{organism_code}{A string representing the organism code in KEGG (e.g., "sce").}
 }
 \value{
 A dataframe ready for plotting.

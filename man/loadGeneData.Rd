@@ -4,10 +4,12 @@
 \alias{loadGeneData}
 \title{load Input data (enrichKEGG object)}
 \usage{
-loadGeneData(DE_results, logFC)
+loadGeneData(DE_results, FC_col_name)
 }
 \arguments{
-\item{enrich_results}{enrichResult Object from enrichKEGG.}
+\item{DE_results}{gene results object, either edgeR, DESeq2, limma, or data frame.}
+
+\item{FC_col_name}{A string specifying the column name for log fold change.}
 }
 \value{
 A dataframe with results for subsequent analysis.
