@@ -116,7 +116,7 @@ create_ggkegg <- function(kegg_results, pathway_id, pathway_number, organism_cod
       return_igraph = FALSE,
       node_rect_nudge=0,
       group_rect_nudge=2,
-      modulte_type="definition",
+      module_type="definition",
       module_definition_type="text"
     )
   return(KEGG_data)
