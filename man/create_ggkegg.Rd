@@ -4,10 +4,12 @@
 \alias{create_ggkegg}
 \title{Create ggkegg Object for KEGG Pathway Visualization}
 \usage{
-create_ggkegg(kegg_results, pathway_number, organism_code = "sce")
+create_ggkegg(kegg_results, pathway_id, pathway_number, organism_code = "sce")
 }
 \arguments{
 \item{kegg_results}{An enrichKEGG output from clusterProfiler (provided by user).}
+
+\item{pathway_id}{A string specifying the pathway ID (provided by user).}
 
 \item{pathway_number}{The number representing the pathway in KEGG.}
 

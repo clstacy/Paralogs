@@ -94,13 +94,15 @@ getPathwayNumber <- function(kegg_results, pathway_id) {
 #' @title Create ggkegg Object for KEGG Pathway Visualization
 #' @description Creates a ggkegg object from KEGG results using specified parameters.
 #' @param kegg_results An enrichKEGG output from clusterProfiler (provided by user).
+#' @param pathway_id A string specifying the pathway ID (provided by user).
 #' @param pathway_number The number representing the pathway in KEGG.
 #' @param organism_code A string representing the organism code in KEGG (e.g., "sce").
 #' @return A ggkegg object.
 #' @export
-create_ggkegg <- function(kegg_results, pathway_number, organism_code = "sce") {
+create_ggkegg <- function(kegg_results, pathway_id, pathway_number, organism_code = "sce") {
   KEGG_data <- # %>%
     ggkegg::ggkegg(kegg_results,
+      pid = pathway_id,
       convert_first = FALSE,
       convert_collapse = "\n",
       pathway_number = pathway_number,
