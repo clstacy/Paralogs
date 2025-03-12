@@ -1,7 +1,7 @@
 Package: Paralogs
 Type: Package
 Title: Visualizing Differential Expression of Paralogs in KEGG Gene Pathways
-Version: 0.1.05
+Version: 0.1.06
 Authors@R: 
     person("Carson", "Stacy", email = "carsonstacy2@gmail.com", role = c("aut", "cre"))
 Description: This package provides functions to visualize the differential expression of paralogs in KEGG gene pathways. The package includes functions to download KEGG gene pathways, extract paralogs from the pathways, and visualize the differential expression of the paralogs. The package also includes functions to visualize the expression of paralogs in the context of the KEGG gene pathways.
