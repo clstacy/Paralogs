@@ -112,7 +112,6 @@ create_ggkegg <- function(kegg_results, pathway_id, pathway_number, organism_cod
       delete_undefined= FALSE,
       pathway_number = pathway_number,
       convert_org = c(organism_code),
-      delete_zero_degree = TRUE,
       numeric_attribute = NULL,
       return_igraph = FALSE,
       node_rect_nudge=0,
