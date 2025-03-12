@@ -107,10 +107,18 @@ create_ggkegg <- function(kegg_results, pathway_id, pathway_number, organism_cod
       return_tbl_graph = TRUE,
       convert_first = FALSE,
       convert_collapse = "\n",
+      convert_reaction = FALSE,
+      delete_zero_degree = FALSE
+      delete_undefined= FALSE,
       pathway_number = pathway_number,
       convert_org = c(organism_code),
       delete_zero_degree = TRUE,
-      return_igraph = FALSE
+      numeric_attribute = NULL,
+      return_igraph = FALSE,
+      node_rect_nudge=0,
+      group_rect_nudge=2,
+      modulte_type="definition",
+      module_definition_type="text"
     )
   return(KEGG_data)
 }
