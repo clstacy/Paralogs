@@ -104,6 +104,7 @@ create_ggkegg <- function(kegg_results, pathway_id, pathway_number, organism_cod
     ggkegg::ggkegg(kegg_results,
       pid = pathway_id,
       layout = "native",
+      return_tbl_graph = TRUE,
       convert_first = FALSE,
       convert_collapse = "\n",
       pathway_number = pathway_number,
