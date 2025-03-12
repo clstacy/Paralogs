@@ -102,7 +102,7 @@ getPathwayNumber <- function(kegg_results, pathway_id) {
 #' @return A ggkegg object.
 #' @export
 create_ggkegg <- function(kegg_results, pathway_id, pathway_number, organism_code = "sce") {
-  KEGG_data <- kegg_results %>%
+  KEGG_data <- eval(as.name(kegg_results)) %>%
     ggkegg::ggkegg(
       layout = "native",
       return_tbl_graph = TRUE,
