@@ -102,23 +102,23 @@ getPathwayNumber <- function(kegg_results, pathway_id) {
 #' @return A ggkegg object.
 #' @export
 create_ggkegg <- function(kegg_results, pathway_id, pathway_number, organism_code = "sce") {
-  KEGG_data <- kegg_results %>%
-    ggkegg(.,
-      layout = "native",
-      return_tbl_graph = TRUE,
+  KEGG_data <-
+    ggkegg::ggkegg(kegg_results,
+      #layout = "native",
+      #return_tbl_graph = TRUE,
       convert_first = FALSE,
       convert_collapse = "\n",
-      convert_reaction = FALSE,
-      delete_zero_degree = FALSE,
-      delete_undefined= FALSE,
+      #convert_reaction = FALSE,
+      delete_zero_degree = TRUE,
+      #delete_undefined= FALSE,
       pathway_number = pathway_number,
       convert_org = c(organism_code),
-      numeric_attribute = NULL,
-      return_igraph = FALSE,
-      node_rect_nudge=0,
-      group_rect_nudge=2,
-      module_type="definition",
-      module_definition_type="text"
+      #numeric_attribute = NULL,
+      return_igraph = FALSE#,
+      #node_rect_nudge=0,
+      #group_rect_nudge=2,
+      #module_type="definition",
+      #module_definition_type="text"
     )
   return(KEGG_data)
 }
@@ -355,7 +355,7 @@ plotParalogs <- function(enrich_results, DE_results, organism_code="sce",
   # return(c(head(KEGG_reactions), head(kegg_results)))
   # Step 4: Create ggkegg object for specified pathway
   pathway_number <- getPathwayNumber(kegg_results, pathway_code)
-  KEGG_data <- create_ggkegg(kegg_results, pathway_code, organism_code)
+  KEGG_data <- create_ggkegg(kegg_results, pathway_code, pathway_number, organism_code)
   # return(KEGG_data)
 
   # # Step 5: Process ggkegg data for visualization
