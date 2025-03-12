@@ -108,7 +108,7 @@ create_ggkegg <- function(kegg_results, pathway_id, pathway_number, organism_cod
       convert_first = FALSE,
       convert_collapse = "\n",
       convert_reaction = FALSE,
-      delete_zero_degree = FALSE
+      delete_zero_degree = FALSE,
       delete_undefined= FALSE,
       pathway_number = pathway_number,
       convert_org = c(organism_code),
