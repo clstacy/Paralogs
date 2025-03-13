@@ -103,24 +103,26 @@ getPathwayNumber <- function(kegg_results, pathway_id) {
 #' @export
 create_ggkegg <- function(kegg_results, pathway_id, pathway_number, organism_code = "sce") {
   KEGG_data <-
-    ggkegg::ggkegg(kegg_results,
-                   pid = pathway_id,
-      #layout = "native",
-      #return_tbl_graph = TRUE,
-      convert_first = FALSE,
-      convert_collapse = "\n",
-      #convert_reaction = FALSE,
-      delete_zero_degree = TRUE,
-      #delete_undefined= FALSE,
-      pathway_number = pathway_number,
-      convert_org = c(organism_code),
-      #numeric_attribute = NULL,
-      return_igraph = FALSE#,
-      #node_rect_nudge=0,
-      #group_rect_nudge=2,
-      #module_type="definition",
-      #module_definition_type="text"
-    )
+    ggkegg::pathway(pathway_id) %>%
+      ggraph::ggraph(., layout="manual", x=x, y=y)
+    # ggkegg::ggkegg(kegg_results,
+    #                pid = pathway_id,
+    #   #layout = "native",
+    #   #return_tbl_graph = TRUE,
+    #   convert_first = FALSE,
+    #   convert_collapse = "\n",
+    #   #convert_reaction = FALSE,
+    #   delete_zero_degree = TRUE,
+    #   #delete_undefined= FALSE,
+    #   pathway_number = pathway_number,
+    #   convert_org = c(organism_code),
+    #   #numeric_attribute = NULL,
+    #   return_igraph = FALSE#,
+    #   #node_rect_nudge=0,
+    #   #group_rect_nudge=2,
+    #   #module_type="definition",
+    #   #module_definition_type="text"
+    # )
   return(KEGG_data)
 }
 
@@ -139,8 +141,9 @@ process_ggkegg <- function(KEGG_data, topTags_results, KEGG_reactions_df, annota
     annotation_db#))
 
   graph_data <- KEGG_data$data %>%
-    # filter(type == "gene") %>%
-    dplyr::filter(type %in% c("gene", "ortholog")) %>% #pull(name)
+    # KEGG_data %>%
+    filter(type == "gene") %>%
+    # dplyr::filter(type %in% c("gene", "ortholog")) %>% #pull(name)
     # mutate(showname = strsplit(name, " ") %>% str_remove_all("sce:")) %>%
       # pull(showname)
     dplyr::mutate(showname = #strsplit(name, " ")  %>%
@@ -376,5 +379,147 @@ plotParalogs <- function(enrich_results, DE_results, organism_code="sce",
 
   # Return the final graph
   return(paralogPlot)
+}
+
+
+## TESTING!!
+#' @title Create KEGG Pathway Graphs
+#' @description Creates comparative graphs for gene expression data on KEGG pathways.
+#' @param graph_data A dataframe with KEGG pathway data processed for visualization.
+#' @param pathway_id A string indicating the pathway ID for overlay.
+#' @param fc_column A string naming the fold change column.
+#' @param juke A number for amount of space to separate names. Default is 20.
+#' @param title A title for the plot.
+#' @return A ggplot object displaying the pathway graphs side by side.
+#' @export
+createParalogPlots <- function(graph_data, pathway_id, fc_column, juke = 20, title) {
+
+  # Calculate maximum fold change for setting color scale limits
+  max_fc <- ceiling(max(abs(graph_data[[fc_column]]), na.rm = TRUE))
+
+  # Process graph_data to adjust positions so labels don’t overlap
+  plot_data <- graph_data %>%
+    dplyr::group_by(x, y) %>%
+    dplyr::mutate(
+      id_in_group = dplyr::row_number(),
+      group_size = dplyr::n(),
+      tmp.y = dplyr::case_when(
+        id_in_group == 1 ~ y,
+        id_in_group == 2 ~ y + juke,
+        id_in_group == 3 ~ y - juke,
+        id_in_group %% 2 == 0 ~ y + (id_in_group - 1) * juke,
+        id_in_group %% 2 != 0 ~ y - (id_in_group - 1) * juke
+      ),
+      tmp.x = dplyr::case_when(
+        id_in_group == 1 ~ x,
+        id_in_group %% 2 == 0 ~ x + 2.5 * juke,
+        id_in_group %% 2 != 0 ~ x - 2.5 * juke
+      )
+    ) %>%
+    dplyr::mutate(
+      tmp.y = dplyr::if_else(group_size == 2, tmp.y - juke/2, tmp.y)
+    ) %>%
+    dplyr::ungroup() %>%
+    # Adjust for high resolution output; you can tweak or remove this as needed
+    dplyr::mutate(
+      tmp.x = tmp.x * 2,
+      tmp.y = tmp.y * 2
+    )
+
+  # Dynamically calculate tile dimensions based on the spread and number of unique positions.
+  tile_width <- diff(range(plot_data$tmp.x, na.rm = TRUE)) / (length(unique(plot_data$tmp.x)) + 1)
+  tile_height <- diff(range(plot_data$tmp.y, na.rm = TRUE)) / (length(unique(plot_data$tmp.y)) + 1)
+
+  # Create the ggplot object using the computed positions and tile dimensions
+  p <- ggplot2::ggplot(plot_data, ggplot2::aes(x = tmp.x, y = tmp.y)) +
+    ggkegg::overlay_raw_map(paste0("map", gsub("[^0-9.-]", "", pathway_id)), high_res = TRUE) +
+    # Use the dynamically computed tile sizes
+    ggplot2::geom_tile(fill = "white", width = tile_width, height = tile_height) +
+    ggplot2::geom_label(ggplot2::aes(label = gene_name, fill = get(fc_column)),
+                        label.padding = grid::unit(0.1, "lines"),
+                        label.r = grid::unit(0.02, "lines"),
+                        size = 1.5) +
+    ggplot2::theme_void() +
+    ggplot2::scale_fill_gradientn(
+      colours = rev(RColorBrewer::brewer.pal(n = 10, name = "RdYlBu")),
+      limits = c(-max_fc, max_fc)
+    ) +
+    ggplot2::theme(plot.margin = grid::unit(c(0.1, 0.1, 0.1, 0.1), "cm")) +
+    ggplot2::labs(fill = "logFC", title = title)
+
+  return(p)
+}
+
+#' @title Create KEGG Pathway Graphs
+#' @description Creates comparative graphs for gene expression data on KEGG pathways.
+#' @param graph_data A dataframe with KEGG pathway data processed for visualization.
+#' @param pathway_id A string indicating the pathway ID for overlay.
+#' @param fc_column A string naming the fold change column.
+#' @param juke A number for amount of space to separate names. Default is 20.
+#' @param title A title for the plot.
+#' @return A ggplot object displaying the pathway graphs side by side.
+#' @export
+createParalogPlots <- function(graph_data, pathway_id, fc_column, juke = 20, title) {
+
+  # Calculate maximum fold change for setting color scale limits
+  max_fc <- ceiling(max(abs(graph_data[[fc_column]]), na.rm = TRUE))
+
+  # Process graph_data to adjust positions so labels don’t overlap
+  plot_data <- graph_data %>%
+    dplyr::group_by(x, y) %>%
+    dplyr::mutate(
+      id_in_group = dplyr::row_number(),
+      group_size = dplyr::n(),
+      tmp.y = dplyr::case_when(
+        id_in_group == 1 ~ y,
+        id_in_group == 2 ~ y + juke,
+        id_in_group == 3 ~ y - juke,
+        id_in_group %% 2 == 0 ~ y + (id_in_group - 1) * juke,
+        id_in_group %% 2 != 0 ~ y - (id_in_group - 1) * juke
+      ),
+      tmp.x = dplyr::case_when(
+        id_in_group == 1 ~ x,
+        id_in_group %% 2 == 0 ~ x + 2.5 * juke,
+        id_in_group %% 2 != 0 ~ x - 2.5 * juke
+      )
+    ) %>%
+    dplyr::mutate(
+      tmp.y = dplyr::if_else(group_size == 2, tmp.y - juke/2, tmp.y)
+    ) %>%
+    dplyr::ungroup() %>%
+    # Adjust for high resolution output; tweak or remove as needed
+    dplyr::mutate(
+      tmp.x = tmp.x * 2,
+      tmp.y = tmp.y * 2
+    )
+
+  # Compute tile dimensions so that the tiles just touch:
+  # Since geom_tile draws centered on (x, y), we use the minimal gap between unique positions.
+
+  # Compute tile width from the x-coordinates
+  unique_x <- sort(unique(plot_data$tmp.x))
+  tile_width <- if (length(unique_x) > 1) min(diff(unique_x)) else 1
+
+  # Compute tile height from the y-coordinates
+  unique_y <- sort(unique(plot_data$tmp.y))
+  tile_height <- if (length(unique_y) > 1) min(diff(unique_y)) else 1
+
+  # Create the ggplot object with the dynamically computed tile sizes
+  p <- ggplot2::ggplot(plot_data, ggplot2::aes(x = tmp.x, y = tmp.y)) +
+    ggkegg::overlay_raw_map(paste0("map", gsub("[^0-9.-]", "", pathway_id)), high_res = TRUE) +
+    ggplot2::geom_tile(fill = "white", width = tile_width, height = tile_height) +
+    ggplot2::geom_label(ggplot2::aes(label = gene_name, fill = get(fc_column)),
+                        label.padding = grid::unit(0.1, "lines"),
+                        label.r = grid::unit(0.02, "lines"),
+                        size = 1.5) +
+    ggplot2::theme_void() +
+    ggplot2::scale_fill_gradientn(
+      colours = rev(RColorBrewer::brewer.pal(n = 10, name = "RdYlBu")),
+      limits = c(-max_fc, max_fc)
+    ) +
+    ggplot2::theme(plot.margin = grid::unit(c(0.1, 0.1, 0.1, 0.1), "cm")) +
+    ggplot2::labs(fill = "logFC", title = title)
+
+  return(p)
 }
 
